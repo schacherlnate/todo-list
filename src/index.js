@@ -1,14 +1,17 @@
 import "./styles.css"
 
 const bigList = (() => {
-    const basicProj = new Project("All tasks", "Default container for tasks")
-    const projList = [basicProj]
+    const projList = []
 
     const addProject = (project) => {
         projList.push(project)
     }
 
-    return {projList, addProject}
+    const hasProject = (proj) => {
+        return (proj in projList)
+    }
+
+    return {projList, addProject, hasProject}
 })();
 
 class Todo {
@@ -24,20 +27,38 @@ class Todo {
 class Project {
     #todoArr
 
-    constructor(title, description) {
+    constructor(title, description="") {
         this.title = title
         this.description = description
-        this.#todoArr = []
+        this.#todoArr = {}
     }
 
     addTodo(todo) {
-        this.#todoArr.push(todo)
+        this.#todoArr[todo.name]=todo
+    }
+
+    getTodos() {
+        const tmpList = []
+        for (const value of Object.values(this.#todoArr)) {
+            tmpList.push(value)
+        }
+        return tmpList
     }
 }
 
-function makeTodo(title, dueTime, priority, description, parent=bigList.projList[0]) {
-    const todo = new Todo(title, dueTime, priority, description, parent=bigList.projList[0])
+
+const standardProj = new Project("Standard")
+bigList.addProject(standardProj)
+
+function makeTodo(title, dueTime, priority, description, parent=standardProj) {
+    if (!bigList.hasProject(parent)) {
+        parent = new Project(parent)
+        bigList.addProject(parent)
+    }
+    const todo = new Todo(title, dueTime, priority, description, parent)
     parent.addTodo(todo)
+    return parent.getTodos()
 }
 
-makeTodo("groceries", "now", "high", "getter done")
+console.log(makeTodo("groceries", "now", "high", "come on", "chores"))
+console.log(bigList.projList)
